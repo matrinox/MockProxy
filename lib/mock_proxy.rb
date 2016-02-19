@@ -56,9 +56,7 @@ class MockProxy
   #        dot delimited key path or an array of method names as strings or symbols
   # @return [Block]
   def self.get(proxy, key_path)
-    callback = get_callback(proxy, key_path)
-    return callback if callback.is_a?(Proc)
-    fail ArgumentError, "The existing callback tree contains the full key path you provided but continues going (i.e. no proc at exact key path). If you want to shorten the callback tree, use MockProxy.set_at. The callback tree looks like this: #{proxy.instance_variable_get('@callback_hash')}"
+    get_and_validate_callback(proxy, key_path)
   end
 
   # Deep merges the callback tree, replacing existing values with new values.
@@ -103,7 +101,7 @@ class MockProxy
   # @yieldreturn [optional]
   # @return [MockProxy] the original proxy object
   def self.observe(proxy, key_path, &block)
-    callback = get(proxy, key_path)
+    callback = get_and_validate_callback(proxy, key_path)
     # Wrap existing callback, calling the provided block before it
     # Multiple calls to .observe will create a pyramid of callbacks, calling the observers before
     # eventually calling the existing callback
@@ -126,7 +124,7 @@ class MockProxy
   # @yieldreturn [optional]
   # @return [MockProxy] the original proxy object
   def self.wrap(proxy, key_path, &block)
-    callback = get(proxy, key_path)
+    callback = get_and_validate_callback(proxy, key_path)
     # Wrap existing callback, calling the provided block before it
     # Multiple calls to .observe will create a pyramid of callbacks, calling the observers before
     # eventually calling the existing callback
@@ -155,6 +153,19 @@ class MockProxy
     end
   end
   private_class_method :get_callback
+
+  # @private
+  # @param [MockProxy] proxy existing proxy
+  # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
+  #        dot delimited key path or an array of method names as strings or symbols
+  # @return [Proc] if proc found at key path
+  # @raise [ArgumentError] if proc not found or hash found at key path
+  def self.get_and_validate_callback(proxy, key_path)
+    callback = get_callback(proxy, key_path)
+    return callback if callback.is_a?(Proc)
+    fail ArgumentError, "The existing callback tree contains the full key path you provided but continues going (i.e. no proc at exact key path). If you want to shorten the callback tree, use MockProxy.set_at. The callback tree looks like this: #{proxy.instance_variable_get('@callback_hash')}"
+  end
+  private_class_method :get_and_validate_callback
 
   # @private
   # @param [MockProxy] proxy existing proxy
