@@ -103,10 +103,7 @@ class MockProxy
   # @yieldreturn [optional]
   # @return [MockProxy] the original proxy object
   def self.observe(proxy, key_path, &block)
-    callback = get_callback(proxy, key_path)
-    unless callback.is_a?(Proc)
-      fail ArgumentError, "The existing callback tree contains the full key path you provided but continues going (i.e. no proc at exact key path). If you want to shorten the callback tree, use MockProxy.set_at, which ignores checking the type at the key path and overwrites the value with the provided block. The callback tree looks like this: #{proxy.instance_variable_get('@callback_hash')}"
-    end
+    callback = get(proxy, key_path)
     # Wrap existing callback, calling the provided block before it
     # Multiple calls to .observe will create a pyramid of callbacks, calling the observers before
     # eventually calling the existing callback
@@ -129,10 +126,7 @@ class MockProxy
   # @yieldreturn [optional]
   # @return [MockProxy] the original proxy object
   def self.wrap(proxy, key_path, &block)
-    callback = get_callback(proxy, key_path)
-    unless callback.is_a?(Proc)
-      fail ArgumentError, "The existing callback tree contains the full key path you provided but continues going (i.e. no proc at exact key path). If you want to shorten the callback tree, use MockProxy.set_at, which ignores checking the type at the key path and overwrites the value with the provided block. The callback tree looks like this: #{proxy.instance_variable_get('@callback_hash')}"
-    end
+    callback = get(proxy, key_path)
     # Wrap existing callback, calling the provided block before it
     # Multiple calls to .observe will create a pyramid of callbacks, calling the observers before
     # eventually calling the existing callback
