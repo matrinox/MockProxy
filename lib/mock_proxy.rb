@@ -44,6 +44,20 @@ require "mock_proxy/version"
 # @since 0.1.0
 #
 class MockProxy
+  # Retrieve the existing callback or callback tree at the specified key path
+  #
+  # NOTE: We freeze the hash so you cannot modify it
+  #
+  # Use case: Retrieve proc to mock
+  #
+  # @param [MockProxy] proxy existing proxy
+  # @param [String, Array<String>] key_path the chain of methods or key path. Can be a
+  #        dot delimited key path or an array of method names as strings or symbols
+  # @return [Block]
+  def self.get(proxy, key_path)
+    get_callback(proxy, key_path)
+  end
+
   # Deep merges the callback tree, replacing existing values with new values
   #
   # Use case: Reuse existing stub but with some different values
@@ -164,20 +178,6 @@ class MockProxy
     proxy.instance_variable_set('@callback_hash', copied_callback_hash)
   end
   private_class_method :set_callback
-
-  # Retrieve the existing callback or callback tree at the specified key path
-  #
-  # NOTE: We freeze the hash so you cannot modify it
-  #
-  # Use case: Retrieve proc to mock or retrieve hash to reflect on what is currently being stubbed
-  #
-  # @param [MockProxy] proxy existing proxy
-  # @param [String, Array<String>] key_path the chain of methods or key path. Can be a
-  #        dot delimited key path or an array of method names as strings or symbols
-  # @return [Block, Hash]
-  def self.get(proxy, key_path)
-
-  end
 
   # @param [Hash] callback_hash the tree of chained method calls
   def initialize(callback_hash)
