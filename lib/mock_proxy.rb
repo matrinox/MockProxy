@@ -77,9 +77,11 @@ class MockProxy
     proxy
   end
 
-  # Replaces the proc at the specified key path
+  # Replaces the proc at the specified key path, but only if there was one there before.
+  # Without creating new paths comes validation, including checking that this replaces an
+  # existing proc, sort of like mkdir (without the -p option)
   #
-  # Use case: Reuse existing stub but modify a proc
+  # Use case: Replace existing stub with a new proc without creating new method chains
   #
   # @param [MockProxy] proxy existing proxy
   # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
@@ -87,6 +89,21 @@ class MockProxy
   # @return [MockProxy] the original proxy object
   def self.replace_at(proxy, key_path, &block)
     set_callback(proxy, key_path, block)
+    proxy
+  end
+
+  # Sets the proc at the specified key path, regardless if there was a proc there before.
+  # No validation comes with automatic path creation, meaning the key path will be defined
+  # it it hasn't already, sort of like mkdir -p
+  #
+  # Use case: Sets a new stub at specified key path while creating new method chains
+  #
+  # @param [MockProxy] proxy existing proxy
+  # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
+  #        dot delimited key path or an array of method names as strings or symbols
+  # @return [MockProxy] the original proxy object
+  def self.set_at(proxy, key_path, &block)
+    set_callback(proxy, key_path, block, false)
     proxy
   end
 
@@ -172,14 +189,23 @@ class MockProxy
   # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
   #        dot delimited key path or an array of method names as strings or symbols
   # @param [Proc] proc the new proc to replace the existing proc
+  # @param [Bool] validate true will throw error if nil at any part of key path, false to
+  #        create key path if missing (mkdir vs mkdir -p) (Defaults: true)
   # @return [MockProxy] if proc existed at key path
   # @raise [ArgumentError] if proc not found or hash found at key path
-  def self.set_callback(proxy, key_path, proc)
+  def self.set_callback(proxy, key_path, proc, validate = true)
+    # Validate by checking if proc exists at key path
+    get_and_validate_callback(proxy, key_path) if validate
+    # Set callback at key path, validating if set
     key_paths = key_path.is_a?(Array) ? key_path.map(&:to_s) : key_path.to_s.split('.')
     copied_callback_hash = proxy.instance_variable_get('@callback_hash').clone
     key_paths.reduce(copied_callback_hash) do |callback_hash, key|
       if !callback_hash || !callback_hash[key]
-        fail ArgumentError, "The existing callback tree does not contain the full key path you provided. We stopped at #{key} and the callback tree looks like this: #{copied_callback_hash}"
+        if validate
+          fail ArgumentError, "The existing callback tree does not contain the full key path you provided. We stopped at #{key} and the callback tree looks like this: #{copied_callback_hash}"
+        else
+          callback_hash[key] = {}
+        end
       end
       if callback_hash[key].is_a?(Proc)
         callback_hash[key] = proc
