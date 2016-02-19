@@ -1,4 +1,6 @@
-require "mock_proxy/version"
+require 'mock_proxy/version'
+require 'active_support'
+require 'active_support/core_ext'
 
 # A non-opinionated proxy object that has multiple uses. It can be used for mocking, spying,
 # stubbing. Use as a dummy, double, fake, etc. Every test double type possible. How? Let's see
@@ -220,9 +222,8 @@ class MockProxy
         else
           # Assign new hash (i.e. create new key path) if there is none (validate won't
           # create new path because it would have failed above)
-          callback_hash[key] ||= {}
+          callback_hash[key] || {}
         end
-      end
       end
     end
     proxy.instance_variable_set('@callback_hash', copied_callback_hash)
