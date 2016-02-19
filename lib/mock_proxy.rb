@@ -170,7 +170,7 @@ class MockProxy
     copied_callback_hash = proxy.instance_variable_get('@callback_hash').clone
     key_paths.reduce(copied_callback_hash) do |callback_hash, key|
       if !callback_hash || !callback_hash[key]
-        fail ArgumentError, "The existing callback tree does not contain the full key path you provided. We stopped at #{key} and the callback tree looks like this: #{existing_callback_hash}"
+        fail ArgumentError, "The existing callback tree does not contain the full key path you provided. We stopped at #{key} and the callback tree looks like this: #{copied_callback_hash}"
       end
       if callback_hash[key].is_a?(Proc)
         callback_hash[key] = proc
