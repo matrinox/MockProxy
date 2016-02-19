@@ -40,7 +40,7 @@ Gem::Specification.new do |spec|
   As you can see, the proc - which ends the proxy by calling the proc - can be used for anything. You can spy on the
   call count and arguments, mock methods, or just stub out code you don't want executed. Because it doesn't make any
   assumptions, it becomes very flexible. Simple, yet powerful, it's uses are infinite. Enjoy"
-  spec.homepage      = nil
+  spec.homepage      = "https://github.com/matrinox/MockProxy"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
