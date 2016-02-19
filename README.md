@@ -57,7 +57,32 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+All different types of test doubles, as found on wikipedia (so you know I did my homework)
+```ruby
+# Stubs
+proxy = MockProxy.new(method: { chain: { ends_with: proc { |*args| return 'stuff_here' } } })
+allow(object).to receive(:method).and_return proxy
+run_system_under_test
+# Mocks
+proxy = MockProxy.new(method: { chain: { ends_with: proc { |*args| return 'stuff_here' } } })
+proc = MockProxy.get(proxy, 'method.chain.ends_with')
+expect(proc).to receive(:call).with('some', 'arg').twice
+run_system_under_test
+# Spies
+called_args = []
+call_count = 0
+proxy = MockProxy.new(method: { chain: { ends_with: proc { |*args| called_args << args; call_count += 1 } } })
+run_system_under_test
+expect(call_count).to >= 1
+expect(called_args).to include ['first_args', 2, 3]
+# Fakes
+model = double('model')
+proxy = MockProxy.new(find: proc { model }, where: { first: proc { model } })
+run_system_under_test
+# Dummy
+proxy = MockProxy.new(to_s: proc {})
+run_system_under_test(proxy)
+```
 
 ## Development
 
@@ -67,7 +92,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/mock_proxy. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/matrinox/mock_proxy. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
 
 
 ## License
