@@ -15,13 +15,14 @@ require "mock_proxy/version"
 # you did not define all the method calls (it won't automatically return itself for methods not defined in the hash)
 #
 # Example use:
-#   let(:model_proxy) { MockProxy.new(generate_email: { validate!: { send: proc { |to| email } } }) }
+#   let(:model_proxy) { MockProxy.new(receive_email: proc {}, generate_email: { validate!: { send: proc { |to| email } } }) }
 #   before { allow(Model).to receive(:new).and_return model_proxy }
 #   # ...
 #   describe 'Model' do
 #     it 'model also receives email' do
-#       callback = proc { |message| expect(message).to eq 'message' }
-#       MockProxy.update_proxy(model_proxy, receive_email: callback)
+#       MockProxy.observe(model_proxy, :receive_email) do |message|
+#         expect(message).to eq 'message'
+#       end
 #       run_system_under_test
 #     end
 #   end
@@ -32,7 +33,7 @@ require "mock_proxy/version"
 # Example:
 #   let(:model_proxy) do
 #     callback = proc do |type|
-#       MockProxy.update_proxy(generator_proxy, decorate: proc { |*args| method_call(type, *args) })
+#       MockProxy.merge(generator_proxy, decorate: proc { |*args| method_call(type, *args) })
 #       generator_proxy
 #     end
 #     MockProxy.new(generate_email: callback)
@@ -55,7 +56,9 @@ class MockProxy
   #        dot delimited key path or an array of method names as strings or symbols
   # @return [Block]
   def self.get(proxy, key_path)
-    get_callback(proxy, key_path)
+    callback = get_callback(proxy, key_path)
+    return callback if callback.is_a?(Proc)
+    fail ArgumentError, "The existing callback tree contains the full key path you provided but continues going (i.e. no proc at exact key path). If you want to shorten the callback tree, use MockProxy.set_at. The callback tree looks like this: #{proxy.instance_variable_get('@callback_hash')}"
   end
 
   # Deep merges the callback tree, replacing existing values with new values.
@@ -101,6 +104,9 @@ class MockProxy
   # @return [MockProxy] the original proxy object
   def self.observe(proxy, key_path, &block)
     callback = get_callback(proxy, key_path)
+    unless callback.is_a?(Proc)
+      fail ArgumentError, "The existing callback tree contains the full key path you provided but continues going (i.e. no proc at exact key path). If you want to shorten the callback tree, use MockProxy.set_at, which ignores checking the type at the key path and overwrites the value with the provided block. The callback tree looks like this: #{proxy.instance_variable_get('@callback_hash')}"
+    end
     # Wrap existing callback, calling the provided block before it
     # Multiple calls to .observe will create a pyramid of callbacks, calling the observers before
     # eventually calling the existing callback
@@ -124,6 +130,9 @@ class MockProxy
   # @return [MockProxy] the original proxy object
   def self.wrap(proxy, key_path, &block)
     callback = get_callback(proxy, key_path)
+    unless callback.is_a?(Proc)
+      fail ArgumentError, "The existing callback tree contains the full key path you provided but continues going (i.e. no proc at exact key path). If you want to shorten the callback tree, use MockProxy.set_at, which ignores checking the type at the key path and overwrites the value with the provided block. The callback tree looks like this: #{proxy.instance_variable_get('@callback_hash')}"
+    end
     # Wrap existing callback, calling the provided block before it
     # Multiple calls to .observe will create a pyramid of callbacks, calling the observers before
     # eventually calling the existing callback
@@ -143,17 +152,12 @@ class MockProxy
   def self.get_callback(proxy, key_path)
     key_paths = key_path.is_a?(Array) ? key_path.map(&:to_s) : key_path.split('.')
     existing_callback_hash = proxy.instance_variable_get('@callback_hash')
-    callback = key_paths.reduce(existing_callback_hash) do |callback_hash, key|
+    key_paths.reduce(existing_callback_hash) do |callback_hash, key|
       if callback_hash && callback_hash[key]
         callback_hash[key]
       else
         fail ArgumentError, "The existing callback tree does not contain the full key path you provided. We stopped at #{key} and the callback tree looks like this: #{existing_callback_hash}"
       end
-    end
-    if callback.is_a?(Proc)
-      callback
-    else
-      fail ArgumentError, "The existing callback tree contains the full key path you provided but continues going. If you want to shorten the callback tree, use MockProxy.update. The callback tree looks like this: #{existing_callback_hash}"
     end
   end
   private_class_method :get_callback
