@@ -198,7 +198,7 @@ class MockProxy
     get_and_validate_callback(proxy, key_path) if validate
     # Set callback at key path, validating if set
     key_paths = key_path.is_a?(Array) ? key_path.map(&:to_s) : key_path.to_s.split('.')
-    copied_callback_hash = proxy.instance_variable_get('@callback_hash').clone
+    copied_callback_hash = Hash[proxy.instance_variable_get('@callback_hash')]
     key_paths.reduce(copied_callback_hash) do |callback_hash, key|
       if !callback_hash || !callback_hash[key]
         if validate
