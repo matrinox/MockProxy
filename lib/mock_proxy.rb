@@ -51,14 +51,17 @@ class MockProxy
   # Use case: Retrieve proc to mock
   #
   # @param [MockProxy] proxy existing proxy
-  # @param [String, Array<String>] key_path the chain of methods or key path. Can be a
+  # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
   #        dot delimited key path or an array of method names as strings or symbols
   # @return [Block]
   def self.get(proxy, key_path)
     get_callback(proxy, key_path)
   end
 
-  # Deep merges the callback tree, replacing existing values with new values
+  # Deep merges the callback tree, replacing existing values with new values.
+  # Avoid using this method for one method change; prefer replace_at. It has clearer
+  # intent and less chances to mess up. MockProxy.merge uses deep_merge under the hood and
+  # can have unexpected behaviour. It also does not type check. Use at risk
   #
   # Use case: Reuse existing stub but with some different values
   #
@@ -78,7 +81,7 @@ class MockProxy
   # Use case: Reuse existing stub but modify a proc
   #
   # @param [MockProxy] proxy existing proxy
-  # @param [String, Array<String>] key_path the chain of methods or key path. Can be a
+  # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
   #        dot delimited key path or an array of method names as strings or symbols
   # @return [MockProxy] the original proxy object
   def self.replace_at(proxy, key_path, &block)
@@ -91,7 +94,7 @@ class MockProxy
   # Use case: Observe method call without changing the existing callback's stubbed return value
   #
   # @param [MockProxy] proxy existing proxy
-  # @param [String, Array<String>] key_path the chain of methods or key path. Can be a
+  # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
   #        dot delimited key path or an array of method names as strings or symbols
   # @yieldparam [*args] args
   # @yieldreturn [optional]
@@ -114,7 +117,7 @@ class MockProxy
   # Use case: Get full control of the existing proc while running custom code
   #
   # @param [MockProxy] proxy existing proxy
-  # @param [String, Array<String>] key_path the chain of methods or key path. Can be a
+  # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
   #        dot delimited key path or an array of method names as strings or symbols
   # @yieldparam [*args, &block] args, original callback
   # @yieldreturn [optional]
@@ -133,12 +136,12 @@ class MockProxy
 
   # @private
   # @param [MockProxy] proxy existing proxy
-  # @param [String, Array<String>] key_path the chain of methods or key path. Can be a
+  # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
   #        dot delimited key path or an array of method names as strings or symbols
   # @return [Proc] if proc found at key path
   # @raise [ArgumentError] if proc not found or hash found at key path
   def self.get_callback(proxy, key_path)
-    key_paths = key_path.is_a?(Array) ? key_path.map(&:to_s) :key_path.split('.')
+    key_paths = key_path.is_a?(Array) ? key_path.map(&:to_s) : key_path.split('.')
     existing_callback_hash = proxy.instance_variable_get('@callback_hash')
     callback = key_paths.reduce(existing_callback_hash) do |callback_hash, key|
       if callback_hash && callback_hash[key]
@@ -157,13 +160,13 @@ class MockProxy
 
   # @private
   # @param [MockProxy] proxy existing proxy
-  # @param [String, Array<String>] key_path the chain of methods or key path. Can be a
+  # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
   #        dot delimited key path or an array of method names as strings or symbols
   # @param [Proc] proc the new proc to replace the existing proc
   # @return [MockProxy] if proc existed at key path
   # @raise [ArgumentError] if proc not found or hash found at key path
   def self.set_callback(proxy, key_path, proc)
-    key_paths = key_path.is_a?(Array) ? key_path.map(&:to_s) :key_path.split('.')
+    key_paths = key_path.is_a?(Array) ? key_path.map(&:to_s) : key_path.to_s.split('.')
     copied_callback_hash = proxy.instance_variable_get('@callback_hash').clone
     key_paths.reduce(copied_callback_hash) do |callback_hash, key|
       if !callback_hash || !callback_hash[key]
