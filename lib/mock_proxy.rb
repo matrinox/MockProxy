@@ -194,23 +194,35 @@ class MockProxy
   # @return [MockProxy] if proc existed at key path
   # @raise [ArgumentError] if proc not found or hash found at key path
   def self.set_callback(proxy, key_path, proc, validate = true)
+    fail ArgumentError, 'proc must be provided' unless proc
+    fail ArgumentError, 'proc must be a proc' unless proc.is_a?(Proc)
     # Validate by checking if proc exists at key path
     get_and_validate_callback(proxy, key_path) if validate
     # Set callback at key path, validating if set
     key_paths = key_path.is_a?(Array) ? key_path.map(&:to_s) : key_path.to_s.split('.')
     copied_callback_hash = Hash[proxy.instance_variable_get('@callback_hash')]
+    # NOTE: Using reduce for accumulator but don't need the return value
     key_paths.reduce(copied_callback_hash) do |callback_hash, key|
-      if !callback_hash || !callback_hash[key]
-        if validate
+      # Last key
+      if key_paths.last == key
+        # Type check value, if validate
+        if validate && !callback_hash[key].is_a?(Proc)
+          fail ArgumentError, "The existing callback tree contains the full key path you provided but continues going (i.e. no proc at exact key path). If you want to shorten the callback tree, use MockProxy.set_at. The callback tree looks like this: #{copied_callback_hash}"
+        else
+          # Assign new proc if pass validations
+          callback_hash[key] = proc
+        end
+      else
+        # In-between keys
+        # Check presence, if validate
+        if validate && !callback_hash[key]
           fail ArgumentError, "The existing callback tree does not contain the full key path you provided. We stopped at #{key} and the callback tree looks like this: #{copied_callback_hash}"
         else
-          callback_hash[key] = {}
+          # Assign new hash (i.e. create new key path) if there is none (validate won't
+          # create new path because it would have failed above)
+          callback_hash[key] ||= {}
         end
       end
-      if callback_hash[key].is_a?(Proc)
-        callback_hash[key] = proc
-      else
-        callback_hash[key]
       end
     end
     proxy.instance_variable_set('@callback_hash', copied_callback_hash)
