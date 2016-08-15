@@ -252,7 +252,7 @@ class MockProxy
   def valid_callback_tree?(callback_tree)
     return false unless callback_tree.is_a?(Hash)
     callback_tree.all? do |key, value|
-      next false unless key.responds_to?(:to_s)
+      next false unless key.respond_to?(:to_s)
       value.is_a?(Hash) ? valid_callback_tree?(value) : valid_callback?(value)
     end
   end
