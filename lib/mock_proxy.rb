@@ -249,17 +249,20 @@ class MockProxy
   #
   # @param [#to_s => AnyObject, !Hash] callback_tree
   # @return [Boolean] true if callback is valid, false if not
-  def valid_callback_tree?(callback_tree)
+  def self.valid_callback_tree?(callback_tree)
     return false unless callback_tree.is_a?(Hash)
     callback_tree.all? do |key, value|
       next false unless key.respond_to?(:to_s)
       value.is_a?(Hash) ? valid_callback_tree?(value) : valid_callback?(value)
     end
   end
+  private_class_method :valid_callback_tree?
 
   # @param [Hash] callback_hash the tree of chained method calls
   def initialize(callback_hash)
-    valid_callback_tree?(callback_hash)
+    unless self.class.send(:valid_callback_tree?, callback_hash)
+      fail "Not a valid callback tree: #{callback_hash}"
+    end
     @callback_hash = callback_hash.deep_stringify_keys.freeze
   end
 
