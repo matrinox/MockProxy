@@ -260,7 +260,7 @@ class MockProxy
 
   # @param [Hash] callback_hash the tree of chained method calls
   def initialize(callback_hash)
-    valid_callback_tree?(callback_hash)
+    self.class.valid_callback_tree?(callback_hash)
     @callback_hash = callback_hash.deep_stringify_keys.freeze
   end
 
