@@ -269,7 +269,7 @@ class MockProxy
   # @private
   def method_missing(name, *args, &block)
     current = @callback_hash[name.to_s]
-    if MockProxy.valid_callback?(current)
+    if MockProxy.send(:valid_callback?, current)
       current.call(*args, &block)
     else
       if !current
