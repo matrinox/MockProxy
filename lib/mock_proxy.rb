@@ -269,13 +269,23 @@ class MockProxy
   # @private
   def method_missing(name, *args, &block)
     current = @callback_hash[name.to_s]
-    if MockProxy.send(:valid_callback?, current)
+    if current.is_a?(MockProxy)
+      current
+      # Proc-like
+    elsif current.respond_to?(:call)
       current.call(*args, &block)
+      # Hash-like
+    elsif current.respond_to?(:to_h)
+      MockProxy.new(current)
+      # Value
+    elsif current
+      current
     else
-      if !current
-        fail "Missing method #{name}. Please add this definition to your mock proxy"
-      end
-      MockProxy.new(current.freeze)
+      fail "Missing method #{name}. Please add this definition to your mock proxy"
     end
+  end
+
+  def respond_to?(m, allow_private = false)
+    @callback_hash.keys.include?(m)
   end
 end
