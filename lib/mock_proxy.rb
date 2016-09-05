@@ -156,12 +156,12 @@ class MockProxy
 
   # @private
   # @param [MockProxy] proxy existing proxy
-  # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
+  # @param [String, Symbol, #to_s, #map, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
   #        dot delimited key path or an array of method names as strings or symbols
   # @return [AnyObject, !Hash] if callback found at key path
   # @raise [ArgumentError] if callback not found or hash found at key path
   def self.get_callback(proxy, key_path)
-    key_paths = key_path.is_a?(Array) ? key_path.map(&:to_s) : key_path.split('.')
+    key_paths = key_path.respond_to?(:map) ? key_path.map(&:to_s) : key_path.split('.')
     existing_callback_hash = proxy.instance_variable_get('@callback_hash')
     key_paths.reduce(existing_callback_hash) do |callback_hash, key|
       if callback_hash && callback_hash[key]
@@ -188,7 +188,7 @@ class MockProxy
 
   # @private
   # @param [MockProxy] proxy existing proxy
-  # @param [String, Symbol, #to_s, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
+  # @param [String, Symbol, #to_s, #map, Array<String, Symbol, #to_s>] key_path the chain of methods or key path. Can be a
   #        dot delimited key path or an array of method names as strings or symbols
   # @param [AnyObject, !Hash] callback the new callback to replace the existing callback
   # @param [Bool] validate true will throw error if nil at any part of key path, false to
@@ -201,7 +201,7 @@ class MockProxy
     # Validate by checking if callback exists at key path
     get_and_validate_callback(proxy, key_path) if validate
     # Set callback at key path, validating if set
-    key_paths = key_path.is_a?(Array) ? key_path.map(&:to_s) : key_path.to_s.split('.')
+    key_paths = key_path.respond_to?(:map) ? key_path.map(&:to_s) : key_path.to_s.split('.')
     copied_callback_hash = Hash[proxy.instance_variable_get('@callback_hash')]
     # NOTE: Using reduce for accumulator but don't need the return value
     key_paths.reduce(copied_callback_hash) do |callback_hash, key|
@@ -247,13 +247,13 @@ class MockProxy
   # read and more reliable, hashes are not a supported callback value. To return one, use
   # a callback like you would normally
   #
-  # @param [#to_s => AnyObject, !Hash] callback_tree
+  # @param [#to_s => AnyObject, #to_h] callback_tree
   # @return [Boolean] true if callback is valid, false if not
   def self.valid_callback_tree?(callback_tree)
-    return false unless callback_tree.is_a?(Hash)
+    return false unless callback_tree.respond_to?(:to_h)
     callback_tree.all? do |key, value|
       next false unless key.respond_to?(:to_s)
-      value.is_a?(Hash) ? valid_callback_tree?(value) : valid_callback?(value)
+      value.respond_to?(:to_h) ? valid_callback_tree?(value) : valid_callback?(value)
     end
   end
   private_class_method :valid_callback_tree?
