@@ -259,7 +259,7 @@ class MockProxy
   private_class_method :valid_callback_tree?
 
   # @param [Hash] callback_hash the tree of chained method calls
-  def initialize(callback_hash)
+  def initialize(callback_hash = {})
     unless self.class.send(:valid_callback_tree?, callback_hash)
       fail "Not a valid callback tree: #{callback_hash}"
     end
