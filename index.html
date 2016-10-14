@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: README
+
+    &mdash; Documentation by YARD 0.9.5
+
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" charset="utf-8" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  pathId = "README";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="class_list.html"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+
+    <a href="_index.html">Index</a> &raquo;
+    <span class="title">File: README</span>
+
+</div>
+
+        <div id="search">
+
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <iframe id="search_frame" src="class_list.html"></iframe>
+
+      <div id="content"><div id='filecontents'><h1>MockProxy</h1>
+
+<p>A proxy that can be used to stub method chains and more!</p>
+
+<h2>Description</h2>
+
+<p>Remember when RSpec had <code>stub_chain</code>? They removed it for good reasons but sometimes you just need it.
+Well, here it is, a proxy object. It doesn&#39;t actually mock anything for you (the name is just catchy) so you need to do that.
+But that actually comes with a lot of benefits:</p>
+
+<ol>
+<li>It&#39;s compatable with any testing framework</li>
+<li>You can use it for purposes other than testing, e.g. prototyping, code stubs</li>
+<li>Flexibility in how you use it without overloading the number of methods you have to remember</li>
+</ol>
+
+<p>Here&#39;s an example usage:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_let'>let</span><span class='lparen'>(</span><span class='symbol'>:model_proxy</span><span class='rparen'>)</span> <span class='kw'>do</span>
+  <span class='const'>MockProxy</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='label'>email_client:</span> <span class='lbrace'>{</span>
+    <span class='label'>create_email:</span> <span class='lbrace'>{</span>
+      <span class='label'>receive:</span> <span class='id identifier rubyid_proc'>proc</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+    <span class='rbrace'>}</span>
+  <span class='rbrace'>}</span><span class='rparen'>)</span>
+<span class='kw'>end</span>
+<span class='id identifier rubyid_before'>before</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_allow'>allow</span><span class='lparen'>(</span><span class='const'>Model</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to'>to</span> <span class='id identifier rubyid_receive'>receive</span><span class='lparen'>(</span><span class='symbol'>:new</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_and_return'>and_return</span> <span class='id identifier rubyid_model_proxy'>model_proxy</span> <span class='rbrace'>}</span>
+<span class='id identifier rubyid_it'>it</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>should call receive</span><span class='tstring_end'>&#39;</span></span> <span class='kw'>do</span>
+  <span class='id identifier rubyid_proc'>proc</span> <span class='op'>=</span> <span class='const'>MockProxy</span><span class='period'>.</span><span class='id identifier rubyid_get'>get</span><span class='lparen'>(</span><span class='id identifier rubyid_model_proxy'>model_proxy</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>email_client.create_email.receive</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_expect'>expect</span><span class='lparen'>(</span><span class='id identifier rubyid_proc'>proc</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to'>to</span> <span class='id identifier rubyid_receive'>receive</span><span class='lparen'>(</span><span class='symbol'>:call</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_run_system_under_test'>run_system_under_test</span>
+  <span class='const'>MockProxy</span><span class='period'>.</span><span class='id identifier rubyid_update'>update</span><span class='lparen'>(</span><span class='id identifier rubyid_mock_proxy'>mock_proxy</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>email_client.create_email.validate!</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='kw'>true</span> <span class='rbrace'>}</span>
+  <span class='const'>MockProxy</span><span class='period'>.</span><span class='id identifier rubyid_observe'>observe</span><span class='lparen'>(</span><span class='id identifier rubyid_mock_proxy'>mock_proxy</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>email_client.create_email.send</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_to'>to</span><span class='op'>|</span>
+    <span class='id identifier rubyid_expect'>expect</span><span class='lparen'>(</span><span class='id identifier rubyid_to'>to</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to'>to</span> <span class='id identifier rubyid_eq'>eq</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>stop@emailing.me</span><span class='tstring_end'>&#39;</span></span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_run_system_under_test2'>run_system_under_test2</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<p>As you can see, the proc - which ends the proxy by calling the proc - can be used for anything. You can spy on the
+call count and arguments, mock methods, or just stub out code you don&#39;t want executed. Because it doesn&#39;t make any
+assumptions, it becomes very flexible. Simple, yet powerful, it&#39;s uses are infinite. Enjoy</p>
+
+<h2>Installation</h2>
+
+<p>Add this line to your application&#39;s Gemfile:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_gem'>gem</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>mock_proxy</span><span class='tstring_end'>&#39;</span></span>
+</code></pre>
+
+<p>And then execute:</p>
+
+<pre class="code ruby"><code class="ruby">$ bundle
+</code></pre>
+
+<p>Or install it yourself as:</p>
+
+<pre class="code ruby"><code class="ruby">$ gem install mock_proxy
+</code></pre>
+
+<h2>Usage</h2>
+
+<p>All different types of test doubles, as found on wikipedia (so you know I did my homework)</p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># Stubs
+</span><span class='id identifier rubyid_proxy'>proxy</span> <span class='op'>=</span> <span class='const'>MockProxy</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='label'>method:</span> <span class='lbrace'>{</span> <span class='label'>chain:</span> <span class='lbrace'>{</span> <span class='label'>ends_with:</span> <span class='id identifier rubyid_proc'>proc</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='op'>|</span> <span class='kw'>return</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>stuff_here</span><span class='tstring_end'>&#39;</span></span> <span class='rbrace'>}</span> <span class='rbrace'>}</span> <span class='rbrace'>}</span><span class='rparen'>)</span>
+<span class='id identifier rubyid_allow'>allow</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to'>to</span> <span class='id identifier rubyid_receive'>receive</span><span class='lparen'>(</span><span class='symbol'>:method</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_and_return'>and_return</span> <span class='id identifier rubyid_proxy'>proxy</span>
+<span class='id identifier rubyid_run_system_under_test'>run_system_under_test</span>
+<span class='comment'># Mocks
+</span><span class='id identifier rubyid_proxy'>proxy</span> <span class='op'>=</span> <span class='const'>MockProxy</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='label'>method:</span> <span class='lbrace'>{</span> <span class='label'>chain:</span> <span class='lbrace'>{</span> <span class='label'>ends_with:</span> <span class='id identifier rubyid_proc'>proc</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='op'>|</span> <span class='kw'>return</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>stuff_here</span><span class='tstring_end'>&#39;</span></span> <span class='rbrace'>}</span> <span class='rbrace'>}</span> <span class='rbrace'>}</span><span class='rparen'>)</span>
+<span class='id identifier rubyid_proc'>proc</span> <span class='op'>=</span> <span class='const'>MockProxy</span><span class='period'>.</span><span class='id identifier rubyid_get'>get</span><span class='lparen'>(</span><span class='id identifier rubyid_proxy'>proxy</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>method.chain.ends_with</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+<span class='id identifier rubyid_expect'>expect</span><span class='lparen'>(</span><span class='id identifier rubyid_proc'>proc</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to'>to</span> <span class='id identifier rubyid_receive'>receive</span><span class='lparen'>(</span><span class='symbol'>:call</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_with'>with</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>some</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>arg</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_twice'>twice</span>
+<span class='id identifier rubyid_run_system_under_test'>run_system_under_test</span>
+<span class='comment'># Spies
+</span><span class='id identifier rubyid_called_args'>called_args</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+<span class='id identifier rubyid_call_count'>call_count</span> <span class='op'>=</span> <span class='int'>0</span>
+<span class='id identifier rubyid_proxy'>proxy</span> <span class='op'>=</span> <span class='const'>MockProxy</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='label'>method:</span> <span class='lbrace'>{</span> <span class='label'>chain:</span> <span class='lbrace'>{</span> <span class='label'>ends_with:</span> <span class='id identifier rubyid_proc'>proc</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='op'>|</span> <span class='id identifier rubyid_called_args'>called_args</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_args'>args</span><span class='semicolon'>;</span> <span class='id identifier rubyid_call_count'>call_count</span> <span class='op'>+=</span> <span class='int'>1</span> <span class='rbrace'>}</span> <span class='rbrace'>}</span> <span class='rbrace'>}</span><span class='rparen'>)</span>
+<span class='id identifier rubyid_run_system_under_test'>run_system_under_test</span>
+<span class='id identifier rubyid_expect'>expect</span><span class='lparen'>(</span><span class='id identifier rubyid_call_count'>call_count</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to'>to</span> <span class='op'>&gt;=</span> <span class='int'>1</span>
+<span class='id identifier rubyid_expect'>expect</span><span class='lparen'>(</span><span class='id identifier rubyid_called_args'>called_args</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to'>to</span> <span class='id identifier rubyid_include'>include</span> <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>first_args</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='int'>2</span><span class='comma'>,</span> <span class='int'>3</span><span class='rbracket'>]</span>
+<span class='comment'># Fakes
+</span><span class='id identifier rubyid_model'>model</span> <span class='op'>=</span> <span class='id identifier rubyid_double'>double</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>model</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+<span class='id identifier rubyid_proxy'>proxy</span> <span class='op'>=</span> <span class='const'>MockProxy</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='label'>find:</span> <span class='id identifier rubyid_proc'>proc</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_model'>model</span> <span class='rbrace'>}</span><span class='comma'>,</span> <span class='label'>where:</span> <span class='lbrace'>{</span> <span class='label'>first:</span> <span class='id identifier rubyid_proc'>proc</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_model'>model</span> <span class='rbrace'>}</span> <span class='rbrace'>}</span><span class='rparen'>)</span>
+<span class='id identifier rubyid_run_system_under_test'>run_system_under_test</span>
+<span class='comment'># Dummy
+</span><span class='id identifier rubyid_proxy'>proxy</span> <span class='op'>=</span> <span class='const'>MockProxy</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='label'>to_s:</span> <span class='id identifier rubyid_proc'>proc</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
+<span class='id identifier rubyid_run_system_under_test'>run_system_under_test</span><span class='lparen'>(</span><span class='id identifier rubyid_proxy'>proxy</span><span class='rparen'>)</span>
+</code></pre>
+
+<h2>Development</h2>
+
+<p>After checking out the repo, run <code>bin/setup</code> to install dependencies. You can also run <code>bin/console</code> for an interactive prompt that will allow you to experiment.</p>
+
+<p>To install this gem onto your local machine, run <code>bundle exec rake install</code>. To release a new version, update the version number in <code>version.rb</code>, and then run <code>bundle exec rake release</code>, which will create a git tag for the version, push git commits and tags, and push the <code>.gem</code> file to <a href="https://rubygems.org">rubygems.org</a>.</p>
+
+<h2>Contributing</h2>
+
+<p>Bug reports and pull requests are welcome on GitHub at <a href="https://github.com/matrinox/mock_proxy">https://github.com/matrinox/mock_proxy</a>. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the <a href="contributor-covenant.org">Contributor Covenant</a> code of conduct.</p>
+
+<h2>License</h2>
+
+<p>The gem is available as open source under the terms of the <a href="http://opensource.org/licenses/MIT">MIT License</a>.</p>
+</div></div>
+
+      <div id="footer">
+  Generated on Fri Oct 14 16:56:44 2016 by
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.5 (ruby-2.2.2).
+</div>
+
+    </div>
+  </body>
+</html>
